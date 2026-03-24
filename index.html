@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Locais em Massachusetts</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        #map {
+            height: 600px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        #search-container {
+            margin-bottom: 20px;
+        }
+        #search-input {
+            padding: 10px;
+            width: 300px;
+            font-size: 16px;
+        }
+        #search-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .found {
+            color: green;
+        }
+        .not-found {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mapa de Locais em Massachusetts</h1>
+    
+    <div id="search-container">
+        <input type="text" id="search-input" placeholder="Digite o nome do local...">
+        <button id="search-button">Pesquisar</button>
+        <div id="result"></div>
+    </div>
+    
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const locations = [
+            "Acton", "Ashland", "Auburn", "Bellingham", "Berlin", "Blackstone", 
+            "Bolton", "Boxborough", "Boylston", "Clinton", "Concord", "Framingham", 
+            "Franklin", "Grafton", "Harvard", "Holden", "Holliston", "Hopedale", 
+            "Hopkinton", "Hudson", "Lancaster", "Leicester", "Lincoln", "Marlborough", 
+            "Maynard", "Medway", "Mendon", "Milford", "Millbury", "Natick", 
+            "North Grafton", "Northborough", "Northbridge", "Shrewsbury", 
+            "Southborough", "Sterling", "Stow", "Sudbury", "Sutton", "Upton", 
+            "Uxbridge", "Wayland", "Wellesley", "West Boylston", "Westborough", 
+            "Wrentham", "Worcester"
+        ];
+
+        // Coordenadas aproximadas de Massachusetts
+        const map = L.map('map').setView([42.3601, -71.8589], 9);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Coordenadas aproximadas para cada local
+        const coordinates = {
+            "Acton": [42.4851, -71.4329],
+            "Ashland": [42.2612, -71.4634],
+            "Auburn": [42.1945, -71.8356],
+            "Bellingham": [42.0867, -71.4745],
+            "Berlin": [42.3812, -71.6373],
+            "Blackstone": [42.0279, -71.5312],
+            "Bolton": [42.4334, -71.6078],
+            "Boxborough": [42.4926, -71.5245],
+            "Boylston": [42.4070, -71.7401],
+            "Clinton": [42.4167, -71.6828],
+            "Concord": [42.4604, -71.3489],
+            "Framingham": [42.2793, -71.4162],
+            "Franklin": [42.0834, -71.3967],
+            "Grafton": [42.2070, -71.6856],
+            "Harvard": [42.5001, -71.5828],
+            "Holden": [42.3518, -71.8634],
+            "Holliston": [42.2001, -71.4245],
+            "Hopedale": [42.1279, -71.5412],
+            "Hopkinton": [42.2287, -71.5223],
+            "Hudson": [42.3918, -71.5662],
+            "Lancaster": [42.4556, -71.6734],
+            "Leicester": [42.2456, -71.9089],
+            "Lincoln": [42.4256, -71.3034],
+            "Marlborough": [42.3459, -71.5523],
+            "Maynard": [42.4334, -71.4500],
+            "Medway": [42.1418, -71.4234],
+            "Mendon": [42.1045, -71.5556],
+            "Milford": [42.1398, -71.5162],
+            "Millbury": [42.1918, -71.7656],
+            "Natick": [42.2834, -71.3495],
+            "North Grafton": [42.2345, -71.7045],
+            "Northborough": [42.3195, -71.6412],
+            "Northbridge": [42.1512, -71.6501],
+            "Shrewsbury": [42.2959, -71.7128],
+            "Southborough": [42.3056, -71.5245],
+            "Sterling": [42.4334, -71.7512],
+            "Stow": [42.4370, -71.5051],
+            "Sudbury": [42.3834, -71.4162],
+            "Sutton": [42.1334, -71.7634],
+            "Upton": [42.1745, -71.6012],
+            "Uxbridge": [42.0745, -71.6328],
+            "Wayland": [42.3626, -71.3612],
+            "Wellesley": [42.2968, -71.2923],
+            "West Boylston": [42.3667, -71.7856],
+            "Westborough": [42.2695, -71.6162],
+            "Wrentham": [42.0667, -71.3295],
+            "Worcester": [42.2626, -71.8023]
+        };
+
+        // Adicionar marcadores ao mapa
+        const markers = {};
+        locations.forEach(location => {
+            if (coordinates[location]) {
+                const marker = L.marker(coordinates[location]).addTo(map);
+                marker.bindPopup(`<b>${location}</b>`);
+                markers[location.toLowerCase()] = marker;
+            }
+        });
+
+        // Função de pesquisa
+        document.getElementById('search-button').addEventListener('click', function() {
+            const searchTerm = document.getElementById('search-input').value.trim();
+            const resultDiv = document.getElementById('result');
+            
+            if (!searchTerm) {
+                resultDiv.innerHTML = 'Por favor, digite um nome de local.';
+                resultDiv.className = '';
+                return;
+            }
+
+            const normalizedSearch = searchTerm.toLowerCase();
+            const found = locations.some(loc => loc.toLowerCase() === normalizedSearch);
+
+            if (found) {
+                resultDiv.innerHTML = `✓ "${searchTerm}" está no mapa!`;
+                resultDiv.className = 'found';
+                
+                // Centralizar no marcador
+                if (markers[normalizedSearch]) {
+                    const marker = markers[normalizedSearch];
+                    map.setView(marker.getLatLng(), 12);
+                    marker.openPopup();
+                }
+            } else {
+                resultDiv.innerHTML = `✗ "${searchTerm}" não está no mapa.`;
+                resultDiv.className = 'not-found';
+            }
+        });
+
+        // Pesquisar ao pressionar Enter
+        document.getElementById('search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('search-button').click();
+            }
+        });
+    </script>
+</body>
+</html>
